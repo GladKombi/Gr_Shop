@@ -163,7 +163,7 @@ require_once('../select/select-categorie.php');
             </main>
 
             <footer class="bg-white shadow px-6 py-3 text-sm flex justify-between">
-                <p>2024 &copy; Sainte_Croix</p>
+                <p>2024 &copy; GR_Shop</p>
                 <p>Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
             </footer>
         </div>

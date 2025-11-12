@@ -1,6 +1,6 @@
 <aside class="w-64 bg-red-900 text-white flex flex-col">
             <div class="p-6 text-center text-2xl font-bold border-b border-red-700">
-                Angel_Tech
+                GR_Shop
             </div>
             <nav class="flex-1 overflow-y-auto">
                 <ul class="p-4 space-y-2">

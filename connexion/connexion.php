@@ -3,7 +3,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "angel_tech";
+$dbname = "gr_shop";
 #Demarer la session
 session_start();
 $error_message = "";

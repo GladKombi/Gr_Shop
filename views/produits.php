@@ -124,24 +124,28 @@ require_once('../select/select-produits.php');
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
+                            <?php 
+                            // Définir un chemin par défaut si le champ 'photo' est vide
+                            $default_photo = 'https://placehold.co/50x50/CCCCCC/000000?text=N/A';
+                            ?>
                             <?php if (empty($products)): ?>
                                 <tr>
                                     <td colspan="8" class="py-3 px-6 text-center text-gray-500">Aucun produit n'a été trouvé.</td>
                                 </tr>
                             <?php else: ?>
-                                <?php 
-                                // Définir un chemin par défaut si le champ 'photo' est vide
-                                $default_photo = 'https://placehold.co/50x50/CCCCCC/000000?text=N/A';
-                                ?>
                                 <?php foreach ($products as $index => $product): ?>
                                     <tr class="border-b">
                                         <td class="px-4 py-2"><?= $index + 1 ?></td>
                                         <td class="px-4 py-2"><?= htmlspecialchars($product['date']) ?></td>
                                         <td class="px-4 py-2">
-                                            <img src="../img/<?= htmlspecialchars($product['photo'] ?? $default_photo) ?>" alt="Photo du produit" class="w-12 h-12 object-cover rounded mx-auto">
+                                            <?php 
+                                            // Utilisation du chemin relatif ici pour l'affichage dans le tableau
+                                            $photo_src = !empty($product['photo']) ? '../img/' . htmlspecialchars($product['photo']) : $default_photo; 
+                                            ?>
+                                            <img src="<?= $photo_src ?>" alt="Photo du produit" class="w-12 h-12 object-cover rounded mx-auto">
                                         </td>
                                         <td class="px-4 py-2"><?= htmlspecialchars($product['nom']) ?></td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($product['categorie']) ?></td>
+                                        <td class="px-4 py-2"><?= htmlspecialchars($product['description']) ?></td>
                                         <td class="px-4 py-2"><?= htmlspecialchars($product['prix']) ?></td>
                                         <td class="px-4 py-2">
                                             <?php
@@ -159,10 +163,10 @@ require_once('../select/select-produits.php');
                                             <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm edit-btn"
                                                 data-id="<?= htmlspecialchars($product['id']) ?>"
                                                 data-nom="<?= htmlspecialchars($product['nom']) ?>"
-                                                data-categorie="<?= htmlspecialchars($product['categorie']) ?>"
+                                                data-categorie-id="<?= htmlspecialchars($product['categorie']) ?>" 
                                                 data-prix="<?= htmlspecialchars($product['prix']) ?>"
                                                 data-quantite-en-stock="<?= htmlspecialchars($product['quantite_en_stock']) ?>"
-                                                data-photo="<?= htmlspecialchars($product['photo'] ?? $default_photo) ?>"> <i class="bi bi-pencil-square"></i>
+                                                data-photo="<?= htmlspecialchars($product['photo'] ?? '') ?>"> <i class="bi bi-pencil-square"></i>
                                             </button>
                                             <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm delete-btn"
                                                 data-id="<?= htmlspecialchars($product['id']) ?>"
@@ -184,7 +188,7 @@ require_once('../select/select-produits.php');
             </main>
 
             <footer class="bg-white shadow px-6 py-3 text-sm flex justify-between">
-                <p>2024 &copy; Sainte_Croix</p>
+                <p>2024 &copy; GR_Shop</p>
                 <p>Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
             </footer>
         </div>
@@ -202,7 +206,7 @@ require_once('../select/select-produits.php');
                 </div>
                 <form id="productForm" action="../traitement/produits-post.php" method="POST" class="p-3 rounded-b-lg" enctype="multipart/form-data">
                     <input type="hidden" name="id" id="idProduct">
-                    <input type="hidden" name="current_photo_path" id="currentPhotoPath"> 
+                    <input type="hidden" name="current_photo_name" id="currentPhotoPath"> 
                     <div class="row">
                         <div class="col-12 p-3">
                             <label for="nom" class="block mb-2">Nom du produit <span class="text-danger">*</span></label>
@@ -287,10 +291,10 @@ require_once('../select/select-produits.php');
             const productNameToDelete = document.getElementById('productNameToDelete');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-            // NOUVEAUX ÉLÉMENTS PHOTO
+            // ÉLÉMENTS PHOTO
             const photoInput = document.getElementById('photo');
             const photoPreview = document.getElementById('photoPreview');
-            const currentPhotoPathInput = document.getElementById('currentPhotoPath');
+            const currentPhotoPathInput = document.getElementById('currentPhotoPath'); // Contient le nom du fichier
             const defaultPlaceholder = "https://placehold.co/100x100/CCCCCC/000000?text=Photo";
 
             function openModal(modal) {
@@ -314,7 +318,12 @@ require_once('../select/select-produits.php');
                     reader.readAsDataURL(file);
                 } else {
                     // Si l'utilisateur annule la sélection, réinitialise à l'image précédente ou par défaut
-                    photoPreview.src = currentPhotoPathInput.value || defaultPlaceholder; 
+                    // On utilise currentPhotoPathInput.value (le nom du fichier) pour reconstruire le chemin
+                    const current_name = currentPhotoPathInput.value;
+                    const fallback_src = (current_name && current_name !== defaultPlaceholder) 
+                                            ? `../img/${current_name}` 
+                                            : defaultPlaceholder;
+                    photoPreview.src = fallback_src;
                 }
             });
 
@@ -345,23 +354,29 @@ require_once('../select/select-produits.php');
                     // Récupération des données du produit
                     const id = btn.getAttribute('data-id');
                     const nom = btn.getAttribute('data-nom');
-                    const categorie = btn.getAttribute('data-categorie');
+                    const categorieId = btn.getAttribute('data-categorie-id'); 
                     const prix = btn.getAttribute('data-prix');
                     const quantite_en_stock = btn.getAttribute('data-quantite-en-stock');
-                    const photo_path = btn.getAttribute('data-photo'); // NOUVEAU
+                    const photo_name = btn.getAttribute('data-photo'); 
+
+                    // Construction du chemin complet de la photo pour la prévisualisation
+                    const full_photo_path = (photo_name && photo_name !== '') 
+                                            ? `../img/${photo_name}` 
+                                            : defaultPlaceholder;
+
 
                     // 1. Remplissage des champs de formulaire
-                    productForm.action = "../controller/gestion_produits.php"; // Chemin mis à jour si nécessaire
+                    productForm.action = "../traitement/produits-post.php"; // Chemin de traitement unique
                     idProductInput.value = id;
                     nomInput.value = nom;
-                    categorieInput.value = categorie;
+                    categorieInput.value = categorieId; // Sélectionne l'ID dans le select
                     prixInput.value = prix;
                     quantiteEnStockInput.value = quantite_en_stock;
                     
                     // 2. Gestion des champs Photo pour l'édition
-                    currentPhotoPathInput.value = photo_path; // Stocke le chemin actuel pour référence
-                    photoPreview.src = photo_path; // Affiche la photo existante
-                    if (photoInput) photoInput.value = null; // Réinitialise le champ file pour la nouvelle sélection
+                    currentPhotoPathInput.value = photo_name; // Stocke UNIQUEMENT le nom du fichier 
+                    photoPreview.src = full_photo_path; // Affiche la photo existante
+                    if (photoInput) photoInput.value = null; // Réinitialise le champ file 
 
                     // 3. Mise à jour des textes de la modale
                     addEditModalTitle.textContent = "Modifier le produit";
@@ -429,7 +444,6 @@ require_once('../select/select-produits.php');
             // Initialisation du compteur de résultats
             const initialRowCount = document.getElementById('productsTableBody').getElementsByTagName('tr').length;
             if (initialRowCount > 0) {
-                 // Soustraire 1 si le message "Aucun produit" est présent, mais ici on le filtre.
                  const realRowCount = <?php echo count($products); ?>;
                  document.getElementById('resultsCount').textContent = `Affichage de ${realRowCount} résultat(s).`;
             } else {
