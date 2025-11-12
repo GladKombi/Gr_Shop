@@ -1,0 +1,6 @@
+Notes Gr_Shop
+=============
+ 1. Interface du vendeurs avec Gestion des clotures journalier ....
+ 2. Gestion des ventes à credits
+ 3. Gestion des sous tretances (Octrios des marchandises à credit)
+ 4. Gestion des ventes à reserve 
