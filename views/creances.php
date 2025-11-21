@@ -19,13 +19,13 @@ try {
     // MODIFICATION 1: Sélectionner MATRICULE, NOM et PRENOM
     $req_existing_creanciers = $connexion->prepare("SELECT matricule, nom, prenom FROM `creancier` ORDER BY nom ASC, prenom ASC");
     $req_existing_creanciers->execute();
-    
+
     // MODIFICATION 2: Utiliser PDO::FETCH_ASSOC pour récupérer toutes les colonnes
-    $existing_creanciers = $req_existing_creanciers->fetchAll(PDO::FETCH_ASSOC); 
+    $existing_creanciers = $req_existing_creanciers->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($current_creance_id)) {
         // --- CAS 1: CRÉANCE EN COURS ---
-        
+
         // 1. Récupère le nom du Créancier et la date d'échéance
         $req_creance_info = $connexion->prepare("SELECT creancier, echeance FROM `creance` WHERE id = :id");
         $req_creance_info->execute(['id' => $current_creance_id]);
@@ -39,7 +39,7 @@ try {
         $req_lines = $connexion->prepare("SELECT lc.id, lc.quantite, lc.prix, lc.statut,p.nom as nom_produit FROM `ligne_creance` lc JOIN `produits` p ON lc.produit = p.id WHERE lc.statut = 0 AND lc.creance = :id ORDER BY lc.id DESC");
         $req_lines->execute(['id' => $current_creance_id]);
         $creance_lines = $req_lines->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // 3. Récupère tous les produits disponibles (en tenant compte du stock)
         $req_products = $connexion->prepare(" 
             SELECT p.id, p.nom, p.prix, p.quantite_en_stock AS stock_disponible
@@ -49,10 +49,9 @@ try {
         ");
         $req_products->execute();
         $products = $req_products->fetchAll(PDO::FETCH_ASSOC);
-
     } else {
         // --- CAS 2: PAS DE CRÉANCE EN COURS (AFFICHAGE HISTORIQUE DES CRÉANCES) ---
-        
+
         // Récupère les 10 dernières créances avec leur montant total dû
         $req_creances = $connexion->prepare("
             SELECT c.id, c.date, c.creancier, c.echeance, c.statut, 
@@ -90,7 +89,9 @@ $connexion = null;
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
 
         .modal-overlay {
             background-color: rgba(0, 0, 0, 0.5);
@@ -99,7 +100,7 @@ $connexion = null;
 
         .modal-content {
             animation: slideIn 0.3s ease-out;
-            max-width: 90%;
+            max-width: 95%;
             width: 500px;
             max-height: 90vh;
             overflow-y: auto;
@@ -107,8 +108,14 @@ $connexion = null;
         }
 
         @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .form-control {
@@ -128,9 +135,9 @@ $connexion = null;
         .form-control:focus {
             color: #495057;
             background-color: #fff;
-            border-color: #007bff;
+            border-color: #dc3545;
             outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(129, 16, 1, 0.25);
         }
 
         .text-danger {
@@ -139,7 +146,7 @@ $connexion = null;
 
         /* Style pour Select2 */
         .select2-container--default .select2-selection--single {
-            border: 1px solid #ced4da !important;
+            border: 1px solid #fc9898ff !important;
             height: 40px !important;
             padding: 0.375rem 0.75rem !important;
             border-radius: 0.5rem !important;
@@ -150,26 +157,230 @@ $connexion = null;
         }
 
         .select2-search--dropdown .select2-search__field {
-            border: 1px solid #ced4da;
+            border: 1px solid #f85353ff;
             border-radius: 0.25rem;
             padding: 0.5rem;
+        }
+
+        /* Styles responsifs améliorés */
+        @media (max-width: 768px) {
+            .flex.h-screen {
+                flex-direction: column;
+            }
+            
+            aside.w-64 {
+                width: 100%;
+                height: auto;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            aside.w-64.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+            }
+            
+            .mobile-menu-overlay.active {
+                display: block;
+            }
+            
+            .flex-1.flex.flex-col {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-btn {
+                display: block !important;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding-left: 4rem;
+                position: relative;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table.min-w-full {
+                min-width: 600px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+            
+            .btn-group-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-group-mobile .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .action-buttons-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main.p-6 {
+                padding: 1rem;
+            }
+            
+            .text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .text-xl {
+                font-size: 1.25rem;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding: 0.75rem 1rem 0.75rem 4rem;
+            }
+            
+            .search-bar-mobile {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-bar-mobile .w-full {
+                width: 100%;
+            }
+            
+            .creance-info-mobile {
+                text-align: center;
+            }
+            
+            .creance-info-mobile h2 {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+            
+            .mobile-menu-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Amélioration de l'affichage des boutons d'action */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+        }
+        
+        .action-buttons a {
+            white-space: nowrap;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* Amélioration du header mobile */
+        .header-mobile {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+        
+        /* Amélioration du footer */
+        .footer-mobile {
+            padding: 1rem;
         }
     </style>
 </head>
 
 <body class="bg-gray-100 text-gray-900 font-sans">
+    <!-- Overlay pour le menu mobile -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
     <div class="flex h-screen">
+        <aside class="w-64 bg-red-900 text-white flex flex-col transition-transform duration-300 fixed h-full z-40" id="sidebar">
+            <div class="p-6 text-center text-2xl font-bold border-b border-red-700 flex justify-between items-center">
+                <span>GR_Shop</span>
+                <button class="mobile-menu-btn hidden text-2xl md:hidden" id="closeSidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto">
+                <ul class="p-4 space-y-2">
+                    <li class="uppercase text-xs text-gray-400">Menus</li>
+                    <li>
+                        <a href="home.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-house-door-fill mr-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produits.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-box-seam-fill mr-2"></i> Produits
+                        </a>
+                    </li>
+                    <li>
+                        <a href="categories.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-tags-fill mr-2"></i> Catégories
+                        </a>
+                    </li>
 
-        <?php include_once('aside.php'); // Assurez-vous que ce chemin est correct ?>
+                    <li>
+                        <a href="creances.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 bg-red-700 transition-colors">
+                            <i class="bi bi-cash-stack mr-2"></i> Créances
+                        </a>
+                    </li>
+                    <li>
+                        <a href="creanciers.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-people-fill mr-2"></i> Créanciers
+                        </a>
+                    </li>
 
-        <div class="flex-1 flex flex-col">
+                    <li>
+                        <a href="ventes.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-bar-chart-fill mr-2"></i> Ventes
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-            <header class="flex items-center justify-between bg-white shadow px-6 py-3">
+        <div class="flex-1 flex flex-col ml-0 md:ml-64 transition-all duration-300">
+
+            <header class="flex items-center justify-between bg-white shadow px-6 py-3 header-mobile">
+                <button class="mobile-menu-btn hidden text-xl mr-4 md:hidden" id="openSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
                 <h1 class="text-xl font-bold">Crédits</h1>
                 <div class="flex items-center space-x-4">
                     <button class="relative">
                         <i class="bi bi-bell text-xl"></i>
-                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                     </button>
                     <div class="flex items-center space-x-2">
                         <img src="https://placehold.co/128x128/E5E7EB/6B7280?text=U" class="w-8 h-8 rounded-full" alt="Avatar">
@@ -179,38 +390,41 @@ $connexion = null;
             </header>
 
             <main class="p-6 overflow-y-auto flex-1">
-                <?php include_once('message.php'); // Affiche les messages de session ?>
+                <?php include_once('message.php'); // Affiche les messages de session 
+                ?>
 
                 <?php if ($current_creance_id) : ?>
-                    <h2 class="text-2xl font-semibold mb-2">Créance en cours: <span class="text-blue-700">#<?= $current_creance_id ?> (<?= $creancier_name ?>)</span></h2>
-                    <p class="mb-4 text-sm text-gray-600">Échéance prévue: <span class="font-bold text-red-500"><?= $echeance_date ?></span></p>
-                    <div class="mb-4 flex space-x-4 flex-wrap gap-2">
-                        <button id="openAddLineModalBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                            <i class="bi bi-plus-circle-fill"></i> Ajouter un produit au crédit
+                    <div class="creance-info-mobile">
+                        <h2 class="text-2xl font-semibold mb-2">Créance en cours: <span class="text-red-700">#<?= $current_creance_id ?> (<?= $creancier_name ?>)</span></h2>
+                        <p class="mb-4 text-sm text-gray-600">Échéance prévue: <span class="font-bold text-red-500"><?= $echeance_date ?></span></p>
+                    </div>
+                    <div class="mb-4 flex space-x-4 flex-wrap gap-2 btn-group-mobile">
+                        <button id="openAddLineModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 flex items-center justify-center">
+                            <i class="bi bi-plus-circle-fill mr-2"></i> Ajouter un produit
                         </button>
-                        <a href="../traitement/gestion_creances.php?action=finalize_creance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                            <i class="bi bi-check-circle-fill"></i> Finaliser la Créance
+                        <a href="../traitement/gestion_creances.php?action=finalize_creance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 flex items-center justify-center">
+                            <i class="bi bi-check-circle-fill mr-2"></i> Finaliser
                         </a>
-                        <a href="creance_details.php?id=<?= $current_creance_id ?>" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                            <i class="bi bi-wallet-fill"></i> Gérer Paiements
+                        <a href="creance_details.php?id=<?= $current_creance_id ?>" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 flex items-center justify-center">
+                            <i class="bi bi-wallet-fill mr-2"></i> Paiements
                         </a>
                     </div>
                 <?php else : ?>
                     <h2 class="text-2xl font-semibold mb-4">Gestion des crédits et historique</h2>
-                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4 search-bar-mobile">
                         <div class="relative w-full flex-1">
                             <input type="text" id="searchInput" placeholder="Rechercher une créance..." class="form-control pl-10">
                             <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         </div>
-                        <button id="openNewCreanceModalBtn" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105 whitespace-nowrap w-full sm:w-auto">
-                            <i class="bi bi-journal-plus"></i> Nouvelle Créance
+                        <button id="openNewCreanceModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 whitespace-nowrap w-full sm:w-auto flex items-center justify-center">
+                            <i class="bi bi-journal-plus mr-2"></i> Nouvelle Créance
                         </button>
                     </div>
                 <?php endif; ?>
 
-                <div class="overflow-x-auto mt-4">
+                <div class="overflow-x-auto mt-4 table-container">
                     <table class="min-w-full bg-white shadow rounded-lg">
-                        <thead class="bg-blue-600 text-white">
+                        <thead class="bg-red-600 text-white">
                             <tr>
                                 <th class="px-4 py-2 text-center">N°</th>
                                 <th class="px-4 py-2 text-left">
@@ -236,44 +450,51 @@ $connexion = null;
                                 </tr>
                             <?php else : ?>
                                 <?php foreach ($creance_lines as $index => $item) : ?>
-                                    <tr class="border-b">
+                                    <tr class="border-b hover:bg-gray-50">
                                         <td class="px-4 py-2 text-center"><?= $index + 1 ?></td>
 
-                                        <?php if ($current_creance_id) : // LIGNES DE LA CRÉANCE EN COURS ?>
-                                            <td class="px-4 py-2 text-left"><?= htmlspecialchars($item['nom_produit']) ?></td>
+                                        <?php if ($current_creance_id) : // LIGNES DE LA CRÉANCE EN COURS 
+                                        ?>
+                                            <td class="px-4 py-2 text-left font-medium"><?= htmlspecialchars($item['nom_produit']) ?></td>
                                             <td class="px-4 py-2 text-center"><?= htmlspecialchars($item['quantite']) ?></td>
-                                            <td class="px-4 py-2 text-right">
+                                            <td class="px-4 py-2 text-right font-semibold">
                                                 $<?= number_format(htmlspecialchars($item['prix'] * $item['quantite']), 2, ',', ' ') ?>
                                             </td>
                                             <td class="px-4 py-2 text-center">
-                                                <a href="../traitement/gestion_lignes_creance.php?action=delete_line&id=<?= htmlspecialchars($item['id']) ?>" 
-                                                   onclick="return confirm('Êtes-vous sûr de vouloir retirer ce produit de la créance?')"
-                                                   class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-transform transform hover:scale-105">
-                                                    <i class="bi bi-trash-fill"></i> Retirer
-                                                </a>
+                                                <div class="action-buttons action-buttons-mobile">
+                                                    <a href="../traitement/gestion_lignes_creance.php?action=delete_line&id=<?= htmlspecialchars($item['id']) ?>"
+                                                        onclick="return confirm('Êtes-vous sûr de vouloir retirer ce produit de la créance?')"
+                                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all hover:scale-105 flex items-center">
+                                                        <i class="bi bi-trash-fill mr-1"></i> Retirer
+                                                    </a>
+                                                </div>
                                             </td>
-                                        <?php else : // HISTORIQUE DES CRÉANCES ?>
+                                        <?php else : // HISTORIQUE DES CRÉANCES 
+                                        ?>
                                             <td class="px-4 py-2 text-left">
-                                                #<?= htmlspecialchars($item['id']) ?> <b>Client: </b><?= htmlspecialchars($item['creancier']) ?>
+                                                <div class="font-semibold">#<?= htmlspecialchars($item['id']) ?></div>
+                                                <div class="text-sm text-gray-600">Client: <?= htmlspecialchars($item['creancier']) ?></div>
                                             </td>
                                             <td class="px-4 py-2 text-center">
                                                 <?= htmlspecialchars(date('d/m/Y', strtotime($item['echeance']))) ?>
                                             </td>
-                                            <td class="px-4 py-2 text-right">
+                                            <td class="px-4 py-2 text-right font-semibold">
                                                 $<?= number_format(htmlspecialchars($item['montant_total']), 2, ',', ' ') ?>
                                             </td>
-                                            <td class="px-4 py-2 flex items-center justify-end space-x-2">
-                                                <span class="text-sm font-semibold px-3 py-1 rounded 
-                                                    <?php
-                                                    if ($item['statut'] == 0) echo 'bg-red-500 text-white';
-                                                    else if ($item['statut'] == 1) echo 'bg-green-500 text-white';
-                                                    else echo 'bg-gray-400 text-white';
-                                                    ?>">
-                                                    <?= ($item['statut'] == 0) ? 'Impayé' : 'Soldé' ?>
-                                                </span>
-                                                <a href="creance_details.php?id=<?= htmlspecialchars($item['id']) ?>" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-transform transform hover:scale-105">
-                                                    <i class="bi bi-eye-fill"></i> Voir
-                                                </a>
+                                            <td class="px-4 py-2">
+                                                <div class="action-buttons action-buttons-mobile">
+                                                    <span class="text-sm font-semibold px-3 py-1 rounded 
+                                                        <?php
+                                                        if ($item['statut'] == 0) echo 'bg-red-500 text-white';
+                                                        else if ($item['statut'] == 1) echo 'bg-green-500 text-white';
+                                                        else echo 'bg-gray-400 text-white';
+                                                        ?>">
+                                                        <?= ($item['statut'] == 0) ? 'Impayé' : 'Soldé' ?>
+                                                    </span>
+                                                    <a href="creance_details.php?id=<?= htmlspecialchars($item['id']) ?>" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all hover:scale-105 flex items-center">
+                                                        <i class="bi bi-eye-fill mr-1"></i> Voir
+                                                    </a>
+                                                </div>
                                             </td>
                                         <?php endif; ?>
 
@@ -285,9 +506,9 @@ $connexion = null;
                 </div>
             </main>
 
-            <footer class="bg-white shadow px-6 py-3 text-sm flex justify-between">
+            <footer class="bg-white shadow px-6 py-3 text-sm flex flex-col md:flex-row justify-between items-center footer-mobile">
                 <p>2024 &copy; Sainte_Croix</p>
-                <p>Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
+                <p class="mt-2 md:mt-0">Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
             </footer>
         </div>
     </div>
@@ -297,7 +518,7 @@ $connexion = null;
             <button id="closeNewCreanceModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition-all hover:rotate-90">
                 &times;
             </button>
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 px-6 mb-4 rounded-t-lg flex items-center justify-center">
+            <div class="bg-gradient-to-r from-red-600 to-red-800 text-white py-4 px-6 mb-4 rounded-t-lg flex items-center justify-center">
                 <i class="bi bi-person-lines-fill text-2xl mr-2"></i>
                 <h4 class="text-center text-xl font-bold">Démarrer une nouvelle créance</h4>
             </div>
@@ -306,8 +527,8 @@ $connexion = null;
                     <label for="creancier_select" class="block mb-2">Nom du Créancier/Client <span class="text-danger">*</span></label>
                     <select required name="creancier_name" id="creancier_select" class="form-control" style="width: 100%;">
                         <option value="">Sélectionner ou taper un nouveau client</option>
-                        
-                        <?php foreach ($existing_creanciers as $creancier) : 
+
+                        <?php foreach ($existing_creanciers as $creancier) :
                             $value_to_send = htmlspecialchars($creancier['matricule']);
                             $display_text = htmlspecialchars('[' . $creancier['matricule'] . '] ' . $creancier['nom'] . ' ' . $creancier['prenom']);
                         ?>
@@ -324,7 +545,7 @@ $connexion = null;
                 </div>
                 <div class="col-12 p-3">
                     <input type="hidden" name="action" value="start_creance">
-                    <input type="submit" class="btn btn-success w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" name="Valider" value="Démarrer la créance">
+                    <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 cursor-pointer" name="Valider" value="Démarrer la créance">
                 </div>
             </form>
         </div>
@@ -336,7 +557,7 @@ $connexion = null;
                 &times;
             </button>
             <div class="w-full">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 px-6 mb-4 rounded-t-lg flex items-center justify-center">
+                <div class="bg-gradient-to-r from-red-600 to-red-800 text-white py-4 px-6 mb-4 rounded-t-lg flex items-center justify-center">
                     <i class="bi bi-plus-circle-fill text-2xl mr-2"></i>
                     <h4 id="addEditModalTitle" class="text-center text-xl font-bold">Ajouter un produit à la créance</h4>
                 </div>
@@ -362,10 +583,10 @@ $connexion = null;
                             <label for="prix_unitaire" class="block mb-2">Prix unitaire (peut être ajusté) <span class="text-danger">*</span></label>
                             <input required type="number" step="0.01" name="prix_unitaire" id="prix_unitaire" class="form-control" placeholder="Prix unitaire">
                         </div>
-                        <input type="hidden" name="prix_total_calculé" id="prix_total_calculé" value="0.00"> 
+                        <input type="hidden" name="prix_total_calculé" id="prix_total_calculé" value="0.00">
                         <div class="col-12 p-3">
                             <input type="hidden" name="action" value="add_line">
-                            <input type="submit" class="btn btn-success w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" name="Valider" id="submitBtn" value="Ajouter à la créance">
+                            <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 cursor-pointer" name="Valider" id="submitBtn" value="Ajouter à la créance">
                         </div>
                     </div>
                 </form>
@@ -375,6 +596,34 @@ $connexion = null;
 
     <script>
         $(document).ready(function() {
+            // Gestion du menu mobile
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            const openSidebarBtn = document.getElementById('openSidebar');
+            const closeSidebarBtn = document.getElementById('closeSidebar');
+
+            if (openSidebarBtn) {
+                openSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.add('mobile-open');
+                    mobileMenuOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    mobileMenuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            mobileMenuOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
             // Initialisation de Select2 pour l'ajout de produit
             $('#id_produit').select2({
                 dropdownParent: $('#addEditModal')
@@ -384,7 +633,7 @@ $connexion = null;
             $('#creancier_select').select2({
                 dropdownParent: $('#newCreanceModal'),
                 tags: true, // IMPORTANT: Permet d'entrer de nouvelles valeurs non listées
-                createTag: function (params) {
+                createTag: function(params) {
                     var term = $.trim(params.term);
                     if (term === '') {
                         return null;
@@ -395,6 +644,15 @@ $connexion = null;
                         text: term
                     };
                 }
+            });
+            
+            // Recherche en temps réel dans le tableau
+            $('#searchInput').on('input', function() {
+                const searchText = $(this).val().toLowerCase();
+                $('#creancesTableBody tr').each(function() {
+                    const rowText = $(this).text().toLowerCase();
+                    $(this).toggle(rowText.indexOf(searchText) > -1);
+                });
             });
         });
 
@@ -420,11 +678,13 @@ $connexion = null;
             function openModal(modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeModal(modal) {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                document.body.style.overflow = '';
             }
 
             // --- Logique d'ouverture/fermeture des modales ---
@@ -434,7 +694,7 @@ $connexion = null;
                 openAddLineModalBtn.addEventListener('click', () => {
                     document.getElementById('creanceLineForm').reset();
                     // Réinitialiser les champs spécifiques et Select2 (utiliser jQuery pour Select2)
-                    $('#id_produit').val('').trigger('change'); 
+                    $('#id_produit').val('').trigger('change');
                     prixUnitaireInput.value = '';
                     prixTotalCacheInput.value = '0.00';
                     stockAlert.classList.add('hidden');
@@ -448,8 +708,8 @@ $connexion = null;
                 openNewCreanceModalBtn.addEventListener('click', () => {
                     document.getElementById('newCreanceForm').reset();
                     // Réinitialiser Select2 pour la créance
-                    $('#creancier_select').val('').trigger('change'); 
-                    
+                    $('#creancier_select').val('').trigger('change');
+
                     // Pré-remplir la date d'échéance à J+30 par défaut
                     const today = new Date();
                     today.setDate(today.getDate() + 30);
@@ -465,12 +725,23 @@ $connexion = null;
                 closeNewCreanceModalBtn.addEventListener('click', () => closeModal(newCreanceModal));
             }
 
+            // Fermer les modales en cliquant à l'extérieur
+            [addEditModal, newCreanceModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            closeModal(modal);
+                        }
+                    });
+                }
+            });
+
             // --- Logique de calcul et de vérification de stock ---
             function updatePriceAndStock() {
                 const selectedOption = idProduitSelect.options[idProduitSelect.selectedIndex];
                 const prixUnitaireStock = selectedOption ? parseFloat(selectedOption.getAttribute('data-prix')) : null;
                 // Stock disponible est la valeur que nous avons récupérée en DB (stock_disponible)
-                const stockDisponible = selectedOption ? parseInt(selectedOption.getAttribute('data-stock')) : 0; 
+                const stockDisponible = selectedOption ? parseInt(selectedOption.getAttribute('data-stock')) : 0;
                 const quantite = parseInt(quantiteInput.value);
 
                 // Réinitialisation des alertes
@@ -504,9 +775,17 @@ $connexion = null;
 
             // Écouteurs d'événements pour le calcul automatique et la vérification
             // Attention : on utilise 'change' pour idProduitSelect car c'est un Select2
-            $('#id_produit').on('change', updatePriceAndStock); 
+            $('#id_produit').on('change', updatePriceAndStock);
             quantiteInput.addEventListener('input', updatePriceAndStock);
             prixUnitaireInput.addEventListener('input', updatePriceAndStock);
+            
+            // Touche Échap pour fermer les modales
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (!addEditModal.classList.contains('hidden')) closeModal(addEditModal);
+                    if (!newCreanceModal.classList.contains('hidden')) closeModal(newCreanceModal);
+                }
+            });
         });
     </script>
 </body>

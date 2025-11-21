@@ -29,7 +29,7 @@ require_once('../select/select-produits.php');
 
         .modal-content {
             animation: slideIn 0.3s ease-out;
-            max-width: 90%;
+            max-width: 95%;
             width: 500px;
             max-height: 90vh;
             overflow-y: auto;
@@ -73,17 +73,241 @@ require_once('../select/select-produits.php');
         .text-danger {
             color: #dc3545;
         }
+
+        /* Styles responsifs améliorés */
+        @media (max-width: 768px) {
+            .flex.h-screen {
+                flex-direction: column;
+            }
+            
+            aside.w-64 {
+                width: 100%;
+                height: auto;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            aside.w-64.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+            }
+            
+            .mobile-menu-overlay.active {
+                display: block;
+            }
+            
+            .flex-1.flex.flex-col {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-btn {
+                display: block !important;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding-left: 4rem;
+                position: relative;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table.min-w-full {
+                min-width: 800px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+            
+            .search-bar-mobile {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-bar-mobile .w-full {
+                width: 100%;
+            }
+            
+            .action-buttons-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: center;
+            }
+            
+            .btn-mobile-full {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main.p-6 {
+                padding: 1rem;
+            }
+            
+            .text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .text-xl {
+                font-size: 1.25rem;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding: 0.75rem 1rem 0.75rem 4rem;
+            }
+            
+            .table-cell-mobile {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.875rem;
+            }
+            
+            .action-buttons-mobile button {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .product-info-mobile {
+                text-align: center;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+            
+            .mobile-menu-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Amélioration de l'affichage des boutons d'action */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+        }
+        
+        .action-buttons button {
+            white-space: nowrap;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* Amélioration du header mobile */
+        .header-mobile {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+        
+        /* Amélioration du footer */
+        .footer-mobile {
+            padding: 1rem;
+        }
+        
+        /* Styles pour les cartes */
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Style pour le statut de stock */
+        .low-stock {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { background-color: #fef3c7; }
+            50% { background-color: #fde68a; }
+            100% { background-color: #fef3c7; }
+        }
     </style>
 </head>
 
 <body class="bg-gray-100 text-gray-900 font-sans">
+    <!-- Overlay pour le menu mobile -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
     <div class="flex h-screen">
+        <aside class="w-64 bg-red-900 text-white flex flex-col transition-transform duration-300 fixed h-full z-40" id="sidebar">
+            <div class="p-6 text-center text-2xl font-bold border-b border-red-700 flex justify-between items-center">
+                <span>GR_Shop</span>
+                <button class="mobile-menu-btn hidden text-2xl md:hidden" id="closeSidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto">
+                <ul class="p-4 space-y-2">
+                    <li class="uppercase text-xs text-gray-400">Menus</li>
+                    <li>
+                        <a href="home.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-house-door-fill mr-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produits.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 bg-red-700 transition-colors">
+                            <i class="bi bi-box-seam-fill mr-2"></i> Produits
+                        </a>
+                    </li>
+                    <li>
+                        <a href="categories.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-tags-fill mr-2"></i> Catégories
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="creances.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-cash-stack mr-2"></i> Créances
+                        </a>
+                    </li>
+                    <li>
+                        <a href="creanciers.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-people-fill mr-2"></i> Créanciers
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="ventes.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-bar-chart-fill mr-2"></i> Ventes
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-        <?php include_once('aside.php'); ?>
-
-        <div class="flex-1 flex flex-col">
-
-            <header class="flex items-center justify-between bg-white shadow px-6 py-3">
+        <div class="flex-1 flex flex-col ml-0 md:ml-64 transition-all duration-300">
+            <header class="flex items-center justify-between bg-white shadow px-6 py-3 header-mobile">
+                <button class="mobile-menu-btn hidden text-xl mr-4 md:hidden" id="openSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
                 <h1 class="text-xl font-bold">Produits</h1>
                 <div class="flex items-center space-x-4">
                     <button class="relative">
@@ -100,27 +324,28 @@ require_once('../select/select-produits.php');
             <main class="p-6 overflow-y-auto flex-1">
                 <h2 class="text-2xl font-semibold mb-4">Gestion des produits</h2>
 
-                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4 search-bar-mobile">
                     <div class="relative w-full flex-1">
                         <input type="text" id="searchInput" placeholder="Rechercher un produit..." class="form-control pl-10">
                         <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
-                    <button id="openAddModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105 whitespace-nowrap w-full sm:w-auto">
-                        Ajouter un Produit
+                    <button id="openAddModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 whitespace-nowrap w-full sm:w-auto flex items-center justify-center btn-mobile-full">
+                        <i class="bi bi-plus-circle-fill mr-2"></i> Ajouter un Produit
                     </button>
                 </div>
 
-                <div class="overflow-x-auto mt-4">
+                <div class="overflow-x-auto mt-4 table-container">
                     <table class="min-w-full bg-white shadow rounded-lg">
                         <thead class="bg-red-600 text-white">
                             <tr>
-                                <th class="px-4 py-2">N°</th>
-                                <th class="px-4 py-2">Date</th>
-                                <th class="px-4 py-2">Photo</th> <th class="px-4 py-2">Nom</th>
-                                <th class="px-4 py-2">Catégorie</th>
-                                <th class="px-4 py-2">Prix</th>
-                                <th class="px-4 py-2">Stock</th>
-                                <th class="px-4 py-2">Actions</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">N°</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Date</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Photo</th>
+                                <th class="px-4 py-2 text-left table-cell-mobile">Nom</th>
+                                <th class="px-4 py-2 text-left table-cell-mobile">Catégorie</th>
+                                <th class="px-4 py-2 text-right table-cell-mobile">Prix</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Stock</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
@@ -134,45 +359,52 @@ require_once('../select/select-produits.php');
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($products as $index => $product): ?>
-                                    <tr class="border-b">
-                                        <td class="px-4 py-2"><?= $index + 1 ?></td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($product['date']) ?></td>
-                                        <td class="px-4 py-2">
+                                    <tr class="border-b hover:bg-gray-50 transition duration-150">
+                                        <td class="px-4 py-2 text-center table-cell-mobile"><?= $index + 1 ?></td>
+                                        <td class="px-4 py-2 text-center table-cell-mobile text-sm"><?= htmlspecialchars($product['date']) ?></td>
+                                        <td class="px-4 py-2 text-center">
                                             <?php 
                                             // Utilisation du chemin relatif ici pour l'affichage dans le tableau
                                             $photo_src = !empty($product['photo']) ? '../img/' . htmlspecialchars($product['photo']) : $default_photo; 
                                             ?>
                                             <img src="<?= $photo_src ?>" alt="Photo du produit" class="w-12 h-12 object-cover rounded mx-auto">
                                         </td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($product['nom']) ?></td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($product['description']) ?></td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($product['prix']) ?></td>
-                                        <td class="px-4 py-2">
+                                        <td class="px-4 py-2 text-left table-cell-mobile font-medium"><?= htmlspecialchars($product['nom']) ?></td>
+                                        <td class="px-4 py-2 text-left table-cell-mobile"><?= htmlspecialchars($product['description']) ?></td>
+                                        <td class="px-4 py-2 text-right table-cell-mobile font-semibold">
+                                            $<?= htmlspecialchars($product['prix']) ?>
+                                        </td>
+                                        <td class="px-4 py-2 text-center">
                                             <?php
                                             $stock = htmlspecialchars($product['quantite_en_stock']);
                                             if ($stock < 10): 
                                             ?>
-                                                <span class="bg-yellow-200 text-yellow-800 py-1 px-3 rounded-full text-xs font-bold">
+                                                <span class="bg-yellow-200 text-yellow-800 py-1 px-3 rounded-full text-xs font-bold low-stock">
                                                     <?= $stock ?>
                                                 </span>
                                             <?php else: ?>
-                                                <?= $stock ?>
+                                                <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-xs font-bold">
+                                                    <?= $stock ?>
+                                                </span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="px-4 py-2 flex space-x-2">
-                                            <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm edit-btn"
-                                                data-id="<?= htmlspecialchars($product['id']) ?>"
-                                                data-nom="<?= htmlspecialchars($product['nom']) ?>"
-                                                data-categorie-id="<?= htmlspecialchars($product['categorie']) ?>" 
-                                                data-prix="<?= htmlspecialchars($product['prix']) ?>"
-                                                data-quantite-en-stock="<?= htmlspecialchars($product['quantite_en_stock']) ?>"
-                                                data-photo="<?= htmlspecialchars($product['photo'] ?? '') ?>"> <i class="bi bi-pencil-square"></i>
-                                            </button>
-                                            <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm delete-btn"
-                                                data-id="<?= htmlspecialchars($product['id']) ?>"
-                                                data-nom="<?= htmlspecialchars($product['nom']) ?>">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
+                                        <td class="px-4 py-2">
+                                            <div class="action-buttons action-buttons-mobile">
+                                                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm edit-btn transition-all hover:scale-105 flex items-center"
+                                                    data-id="<?= htmlspecialchars($product['id']) ?>"
+                                                    data-nom="<?= htmlspecialchars($product['nom']) ?>"
+                                                    data-categorie-id="<?= htmlspecialchars($product['categorie']) ?>" 
+                                                    data-prix="<?= htmlspecialchars($product['prix']) ?>"
+                                                    data-quantite-en-stock="<?= htmlspecialchars($product['quantite_en_stock']) ?>"
+                                                    data-photo="<?= htmlspecialchars($product['photo'] ?? '') ?>">
+                                                    <i class="bi bi-pencil-square mr-1"></i> Modifier
+                                                </button>
+                                                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm delete-btn transition-all hover:scale-105 flex items-center"
+                                                    data-id="<?= htmlspecialchars($product['id']) ?>"
+                                                    data-nom="<?= htmlspecialchars($product['nom']) ?>">
+                                                    <i class="bi bi-trash-fill mr-1"></i> Supprimer
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -181,15 +413,15 @@ require_once('../select/select-produits.php');
                     </table>
                 </div>
                 <div class="mt-4 flex flex-col sm:flex-row justify-between items-center">
-                    <span id="resultsCount" class="text-sm text-gray-600 mb-2 sm:mb-0"></span>
-                    <div id="paginationContainer" class="flex justify-center items-center space-x-2">
-                    </div>
+                    <span id="resultsCount" class="text-sm text-gray-600 mb-2 sm:mb-0">
+                        Affichage de <?= count($products) ?> résultat(s).
+                    </span>
                 </div>
             </main>
 
-            <footer class="bg-white shadow px-6 py-3 text-sm flex justify-between">
+            <footer class="bg-white shadow px-6 py-3 text-sm flex flex-col md:flex-row justify-between items-center footer-mobile">
                 <p>2024 &copy; GR_Shop</p>
-                <p>Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
+                <p class="mt-2 md:mt-0">Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
             </footer>
         </div>
     </div>
@@ -207,12 +439,12 @@ require_once('../select/select-produits.php');
                 <form id="productForm" action="../traitement/produits-post.php" method="POST" class="p-3 rounded-b-lg" enctype="multipart/form-data">
                     <input type="hidden" name="id" id="idProduct">
                     <input type="hidden" name="current_photo_name" id="currentPhotoPath"> 
-                    <div class="row">
-                        <div class="col-12 p-3">
+                    <div class="space-y-4">
+                        <div>
                             <label for="nom" class="block mb-2">Nom du produit <span class="text-danger">*</span></label>
                             <input required type="text" name="nom" id="nom" class="form-control" placeholder="Entrez le nom du produit">
                         </div>
-                        <div class="col-12 p-3">
+                        <div>
                             <label for="categorie" class="block mb-2">Catégorie <span class="text-danger">*</span></label>
                             <select required name="categorie" id="categorie" class="form-control">
                                 <option value="">Sélectionnez une catégorie</option>
@@ -224,16 +456,18 @@ require_once('../select/select-produits.php');
                                 <?php endforeach; endif; ?>
                             </select>
                         </div>
-                        <div class="col-12 p-3">
-                            <label for="quantite_en_stock" class="block mb-2">Quantité en stock <span class="text-danger">*</span></label>
-                            <input required type="number" name="quantite_en_stock" id="quantite_en_stock" class="form-control" placeholder="Entrez la quantité en stock">
-                        </div>
-                        <div class="col-12 p-3">
-                            <label for="prix" class="block mb-2">Prix <span class="text-danger">*</span></label>
-                            <input required type="number" step="0.01" name="prix" id="prix" class="form-control" placeholder="EX: 99.99">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="quantite_en_stock" class="block mb-2">Quantité en stock <span class="text-danger">*</span></label>
+                                <input required type="number" name="quantite_en_stock" id="quantite_en_stock" class="form-control" placeholder="Quantité">
+                            </div>
+                            <div>
+                                <label for="prix" class="block mb-2">Prix <span class="text-danger">*</span></label>
+                                <input required type="number" step="0.01" name="prix" id="prix" class="form-control" placeholder="EX: 99.99">
+                            </div>
                         </div>
 
-                        <div class="col-12 p-3">
+                        <div>
                             <label for="photo" class="block mb-2">Photo du produit</label>
                             <input type="file" name="photo" id="photo" class="form-control" accept="image/*">
                             
@@ -242,8 +476,8 @@ require_once('../select/select-produits.php');
                             </div>
                         </div>
                         
-                        <div class="col-12 p-3">
-                            <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" name="Valider" id="submitBtn" value="Enregistrer">
+                        <div>
+                            <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 cursor-pointer" name="Valider" id="submitBtn" value="Enregistrer">
                         </div>
                     </div>
                 </form>
@@ -252,19 +486,19 @@ require_once('../select/select-produits.php');
     </div>
 
     <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="bg-white p-6 rounded-lg shadow-xl modal-content relative text-center" style="width: 400px;">
+        <div class="bg-white p-6 rounded-lg shadow-xl modal-content relative text-center" style="max-width: 95%; width: 400px;">
             <button id="closeDeleteModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition-all hover:rotate-90">
                 &times;
             </button>
             <i class="bi bi-exclamation-triangle-fill text-yellow-500 text-5xl mb-4"></i>
             <h4 class="text-xl font-bold mb-2">Confirmer la suppression</h4>
             <p class="mb-4">Êtes-vous sûr de vouloir supprimer le produit <strong id="productNameToDelete"></strong> ?</p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirmDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-transform transform hover:scale-105">
-                    Supprimer
+            <div class="flex justify-center space-x-4 flex-wrap gap-2">
+                <button id="confirmDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-all hover:scale-105 flex items-center">
+                    <i class="bi bi-trash-fill mr-2"></i> Supprimer
                 </button>
-                <button id="cancelDeleteBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-transform transform hover:scale-105">
-                    Annuler
+                <button id="cancelDeleteBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-all hover:scale-105 flex items-center">
+                    <i class="bi bi-x-circle mr-2"></i> Annuler
                 </button>
             </div>
         </div>
@@ -274,6 +508,34 @@ require_once('../select/select-produits.php');
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Gestion du menu mobile
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            const openSidebarBtn = document.getElementById('openSidebar');
+            const closeSidebarBtn = document.getElementById('closeSidebar');
+
+            if (openSidebarBtn) {
+                openSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.add('mobile-open');
+                    mobileMenuOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    mobileMenuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            mobileMenuOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
             const openAddModalBtn = document.getElementById('openAddModalBtn');
             const addEditModal = document.getElementById('addEditModal');
             const deleteModal = document.getElementById('deleteModal');
@@ -300,11 +562,13 @@ require_once('../select/select-produits.php');
             function openModal(modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeModal(modal) {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                document.body.style.overflow = '';
             }
             
             // Gère la prévisualisation du fichier image sélectionné
@@ -345,6 +609,17 @@ require_once('../select/select-produits.php');
             closeAddEditModalBtn.addEventListener('click', () => closeModal(addEditModal));
             closeDeleteModalBtn.addEventListener('click', () => closeModal(deleteModal));
             cancelDeleteBtn.addEventListener('click', () => closeModal(deleteModal));
+
+            // Fermer les modales en cliquant à l'extérieur
+            [addEditModal, deleteModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            closeModal(modal);
+                        }
+                    });
+                }
+            });
 
             document.querySelector('#productsTableBody').addEventListener('click', (event) => {
                 const target = event.target;
@@ -440,15 +715,14 @@ require_once('../select/select-produits.php');
                 }
                 document.getElementById('resultsCount').textContent = `Affichage de ${count} résultat(s).`;
             });
-            
-            // Initialisation du compteur de résultats
-            const initialRowCount = document.getElementById('productsTableBody').getElementsByTagName('tr').length;
-            if (initialRowCount > 0) {
-                 const realRowCount = <?php echo count($products); ?>;
-                 document.getElementById('resultsCount').textContent = `Affichage de ${realRowCount} résultat(s).`;
-            } else {
-                document.getElementById('resultsCount').textContent = `Affichage de 0 résultat.`;
-            }
+
+            // Touche Échap pour fermer les modales
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (!addEditModal.classList.contains('hidden')) closeModal(addEditModal);
+                    if (!deleteModal.classList.contains('hidden')) closeModal(deleteModal);
+                }
+            });
         });
     </script>
 </body>

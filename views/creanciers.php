@@ -8,8 +8,6 @@ try {
     die("Erreur de récupération des créanciers : " . $e->getMessage());
 }
 
-
-
 // --- 2. GESTION DES MESSAGES DE SESSION (AJOUT/MODIF/SUPPR) ---
 $message = $_SESSION['message'] ?? '';
 $message_type = $_SESSION['message_type'] ?? 'success';
@@ -29,7 +27,6 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* Styles CSS inchangés pour le contexte de ce script */
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -41,7 +38,7 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
 
         .modal-content {
             animation: slideIn 0.3s ease-out;
-            max-width: 90%;
+            max-width: 95%;
             width: 550px;
             max-height: 90vh;
             overflow-y: auto;
@@ -85,31 +82,235 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
         .text-danger {
             color: #dc3545;
         }
+
+        /* Styles responsifs améliorés */
+        @media (max-width: 768px) {
+            .flex.h-screen {
+                flex-direction: column;
+            }
+            
+            aside.w-64 {
+                width: 100%;
+                height: auto;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            aside.w-64.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+            }
+            
+            .mobile-menu-overlay.active {
+                display: block;
+            }
+            
+            .flex-1.flex.flex-col {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-menu-btn {
+                display: block !important;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding-left: 4rem;
+                position: relative;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table.min-w-full {
+                min-width: 700px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+            
+            .search-bar-mobile {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-bar-mobile .w-full {
+                width: 100%;
+            }
+            
+            .action-buttons-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+                align-items: center;
+            }
+            
+            .form-grid-mobile {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .btn-mobile-full {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main.p-6 {
+                padding: 1rem;
+            }
+            
+            .text-2xl {
+                font-size: 1.5rem;
+            }
+            
+            .text-xl {
+                font-size: 1.25rem;
+            }
+            
+            header.flex.items-center.justify-between {
+                padding: 0.75rem 1rem 0.75rem 4rem;
+            }
+            
+            .table-cell-mobile {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.875rem;
+            }
+            
+            .action-buttons-mobile button {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .photo-preview-mobile {
+                margin: 0 auto;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none !important;
+            }
+            
+            .mobile-menu-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Amélioration de l'affichage des boutons d'action */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            justify-content: center;
+        }
+        
+        .action-buttons button {
+            white-space: nowrap;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        /* Amélioration du header mobile */
+        .header-mobile {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+        
+        /* Amélioration du footer */
+        .footer-mobile {
+            padding: 1rem;
+        }
+        
+        /* Styles pour les cartes */
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
     </style>
 </head>
 
 <body class="bg-gray-100 text-gray-900 font-sans">
+    <!-- Overlay pour le menu mobile -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
     <div class="flex h-screen">
-
-        <div class="w-64 bg-gray-800 text-white p-4">
-            <h2 class="text-2xl font-bold mb-8">GR_Shop Admin</h2>
-            <nav class="space-y-2">
-                <a href="#" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-red-600 transition duration-150">
-                    <i class="bi bi-box-seam-fill"></i><span>Produits</span>
-                </a>
-                <a href="#" class="flex items-center space-x-2 p-2 rounded-lg bg-red-600 transition duration-150">
-                    <i class="bi bi-person-badge-fill"></i><span>Créanciers</span>
-                </a>
-                <a href="#" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-red-600 transition duration-150">
-                    <i class="bi bi-truck"></i><span>Crédits</span>
-                </a>
+        <aside class="w-64 bg-red-900 text-white flex flex-col transition-transform duration-300 fixed h-full z-40" id="sidebar">
+            <div class="p-6 text-center text-2xl font-bold border-b border-red-700 flex justify-between items-center">
+                <span>GR_Shop</span>
+                <button class="mobile-menu-btn hidden text-2xl md:hidden" id="closeSidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto">
+                <ul class="p-4 space-y-2">
+                    <li class="uppercase text-xs text-gray-400">Menus</li>
+                    <li>
+                        <a href="home.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-house-door-fill mr-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produits.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-box-seam-fill mr-2"></i> Produits
+                        </a>
+                    </li>
+                    <li>
+                        <a href="categories.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-tags-fill mr-2"></i> Catégories
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="creances.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-cash-stack mr-2"></i> Créances
+                        </a>
+                    </li>
+                    <li>
+                        <a href="creanciers.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 bg-red-700 transition-colors">
+                            <i class="bi bi-people-fill mr-2"></i> Créanciers
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="ventes.php" class="flex items-center px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="bi bi-bar-chart-fill mr-2"></i> Ventes
+                        </a>
+                    </li>
+                </ul>
             </nav>
-        </div>
+        </aside>
 
-
-        <div class="flex-1 flex flex-col">
-
-            <header class="flex items-center justify-between bg-white shadow px-6 py-3">
+        <div class="flex-1 flex flex-col ml-0 md:ml-64 transition-all duration-300">
+            <header class="flex items-center justify-between bg-white shadow px-6 py-3 header-mobile">
+                <button class="mobile-menu-btn hidden text-xl mr-4 md:hidden" id="openSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
                 <h1 class="text-xl font-bold">Créanciers</h1>
                 <div class="flex items-center space-x-4">
                     <button class="relative">
@@ -132,26 +333,26 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                     </div>
                 <?php endif; ?>
 
-                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div class="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4 search-bar-mobile">
                     <div class="relative w-full flex-1">
                         <input type="text" id="searchInput" placeholder="Rechercher par nom ou matricule..." class="form-control pl-10">
                         <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
-                    <button id="openAddModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-105 whitespace-nowrap w-full sm:w-auto">
-                        Ajouter un Créancier
+                    <button id="openAddModalBtn" class="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105 whitespace-nowrap w-full sm:w-auto flex items-center justify-center btn-mobile-full">
+                        <i class="bi bi-person-plus-fill mr-2"></i> Ajouter un Créancier
                     </button>
                 </div>
 
-                <div class="overflow-x-auto mt-4">
+                <div class="overflow-x-auto mt-4 table-container">
                     <table class="min-w-full bg-white shadow rounded-lg">
                         <thead class="bg-red-600 text-white">
                             <tr>
-                                <th class="px-4 py-2 text-left">Matricule</th>
-                                <th class="px-4 py-2 text-left">Noms Complet</th>
-                                <th class="px-4 py-2">Photo</th>
-                                <th class="px-4 py-2">Téléphone</th>
-                                <th class="px-4 py-2">Statut</th>
-                                <th class="px-4 py-2">Actions</th>
+                                <th class="px-4 py-2 text-left table-cell-mobile">Matricule</th>
+                                <th class="px-4 py-2 text-left table-cell-mobile">Noms Complet</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Photo</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Téléphone</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Statut</th>
+                                <th class="px-4 py-2 text-center table-cell-mobile">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="creanciersTableBody">
@@ -166,9 +367,12 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                             <?php else: ?>
                                 <?php foreach ($creanciers as $index => $creancier): ?>
                                     <tr class="border-b hover:bg-red-50 transition duration-150">
-                                        <td class="px-4 py-2 font-medium"><?= htmlspecialchars($creancier['matricule']) ?></td>
-                                        <td class="px-4 py-2">
-                                            <?= htmlspecialchars($creancier['nom']) . ' ' . htmlspecialchars($creancier['postnom']) . ' ' . htmlspecialchars($creancier['prenom']) ?>
+                                        <td class="px-4 py-2 font-medium table-cell-mobile"><?= htmlspecialchars($creancier['matricule']) ?></td>
+                                        <td class="px-4 py-2 table-cell-mobile">
+                                            <div class="font-medium"><?= htmlspecialchars($creancier['nom']) ?></div>
+                                            <div class="text-sm text-gray-600">
+                                                <?= htmlspecialchars($creancier['postnom']) . ' ' . htmlspecialchars($creancier['prenom']) ?>
+                                            </div>
                                         </td>
                                         <td class="px-4 py-2 text-center">
                                             <?php 
@@ -179,7 +383,9 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                                             ?>
                                             <img src="<?= $photo_src ?>" alt="Photo du créancier" class="w-10 h-10 object-cover rounded-full mx-auto">
                                         </td>
-                                        <td class="px-4 py-2"><?= htmlspecialchars($creancier['telephone']) ?></td>
+                                        <td class="px-4 py-2 text-center table-cell-mobile">
+                                            <?= htmlspecialchars($creancier['telephone']) ?>
+                                        </td>
                                         <td class="px-4 py-2 text-center">
                                             <?php
                                             $statut = htmlspecialchars($creancier['statut']);
@@ -189,22 +395,24 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                                                 <?= $statut ?>
                                             </span>
                                         </td>
-                                        <td class="px-4 py-2 flex space-x-2 justify-center">
-                                            <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm edit-btn"
-                                                data-matricule="<?= htmlspecialchars($creancier['matricule']) ?>"
-                                                data-nom="<?= htmlspecialchars($creancier['nom']) ?>"
-                                                data-postnom="<?= htmlspecialchars($creancier['postnom']) ?>"
-                                                data-prenom="<?= htmlspecialchars($creancier['prenom']) ?>"
-                                                data-telephone="<?= htmlspecialchars($creancier['telephone']) ?>"
-                                                data-statut="<?= htmlspecialchars($creancier['statut']) ?>"
-                                                data-photo="<?= htmlspecialchars($creancier['photo'] ?? '') ?>"> 
-                                                <i class="bi bi-pencil-square"></i>
-                                            </button>
-                                            <button type="button" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm delete-btn"
-                                                data-matricule="<?= htmlspecialchars($creancier['matricule']) ?>"
-                                                data-nomcomplet="<?= htmlspecialchars($creancier['nom']) . ' ' . htmlspecialchars($creancier['postnom']) ?>">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
+                                        <td class="px-4 py-2">
+                                            <div class="action-buttons action-buttons-mobile">
+                                                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm edit-btn transition-all hover:scale-105 flex items-center"
+                                                    data-matricule="<?= htmlspecialchars($creancier['matricule']) ?>"
+                                                    data-nom="<?= htmlspecialchars($creancier['nom']) ?>"
+                                                    data-postnom="<?= htmlspecialchars($creancier['postnom']) ?>"
+                                                    data-prenom="<?= htmlspecialchars($creancier['prenom']) ?>"
+                                                    data-telephone="<?= htmlspecialchars($creancier['telephone']) ?>"
+                                                    data-statut="<?= htmlspecialchars($creancier['statut']) ?>"
+                                                    data-photo="<?= htmlspecialchars($creancier['photo'] ?? '') ?>"> 
+                                                    <i class="bi bi-pencil-square mr-1"></i> Modifier
+                                                </button>
+                                                <button type="button" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm delete-btn transition-all hover:scale-105 flex items-center"
+                                                    data-matricule="<?= htmlspecialchars($creancier['matricule']) ?>"
+                                                    data-nomcomplet="<?= htmlspecialchars($creancier['nom']) . ' ' . htmlspecialchars($creancier['postnom']) ?>">
+                                                    <i class="bi bi-trash-fill mr-1"></i> Supprimer
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -213,15 +421,15 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                     </table>
                 </div>
                 <div class="mt-4 flex flex-col sm:flex-row justify-between items-center">
-                    <span id="resultsCount" class="text-sm text-gray-600 mb-2 sm:mb-0"></span>
-                    <div id="paginationContainer" class="flex justify-center items-center space-x-2">
-                        </div>
+                    <span id="resultsCount" class="text-sm text-gray-600 mb-2 sm:mb-0">
+                        Affichage de <?= count($creanciers) ?> résultat(s).
+                    </span>
                 </div>
             </main>
 
-            <footer class="bg-white shadow px-6 py-3 text-sm flex justify-between">
+            <footer class="bg-white shadow px-6 py-3 text-sm flex flex-col md:flex-row justify-between items-center footer-mobile">
                 <p>2024 &copy; GR_Shop</p>
-                <p>Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
+                <p class="mt-2 md:mt-0">Crafted with <span class="text-red-500"><i class="bi bi-heart-fill"></i></span> by <a href="#" class="text-red-600">Glad</a></p>
             </footer>
         </div>
     </div>
@@ -236,7 +444,7 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                     <i class="bi bi-person-badge-fill text-2xl mr-2"></i>
                     <h4 id="addEditModalTitle" class="text-center text-xl font-bold">Ajouter un nouveau Créancier</h4>
                 </div>
-                <form id="creancierForm" action="../traitement/creanciers-post.php" method="POST" class="p-3 rounded-b-lg grid grid-cols-2 gap-4" enctype="multipart/form-data">
+                <form id="creancierForm" action="../traitement/creanciers-post.php" method="POST" class="p-3 rounded-b-lg grid grid-cols-2 gap-4 form-grid-mobile" enctype="multipart/form-data">
                     <input type="hidden" name="old_matricule" id="oldMatricule">
                     <input type="hidden" name="current_photo_name" id="currentPhotoPath"> 
                     
@@ -248,24 +456,24 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                         </span>
                     </div>
                     
-                    <div class="col-span-1">
+                    <div class="col-span-2 md:col-span-1">
                         <label for="nom" class="block mb-2">Nom <span class="text-danger">*</span></label>
                         <input required type="text" name="nom" id="nom" class="form-control" placeholder="Nom de famille">
                     </div>
-                    <div class="col-span-1">
+                    <div class="col-span-2 md:col-span-1">
                         <label for="postnom" class="block mb-2">Postnom</label>
                         <input type="text" name="postnom" id="postnom" class="form-control" placeholder="Postnom">
                     </div>
-                    <div class="col-span-1">
+                    <div class="col-span-2 md:col-span-1">
                         <label for="prenom" class="block mb-2">Prénom <span class="text-danger">*</span></label>
                         <input required type="text" name="prenom" id="prenom" class="form-control" placeholder="Prénom">
                     </div>
 
-                    <div class="col-span-1">
+                    <div class="col-span-2 md:col-span-1">
                         <label for="telephone" class="block mb-2">Téléphone <span class="text-danger">*</span></label>
                         <input required type="text" name="telephone" id="telephone" class="form-control" placeholder="+243 8X XXX XX XX">
                     </div>
-                    <div class="col-span-1">
+                    <div class="col-span-2 md:col-span-1">
                         <label for="statut" class="block mb-2">Statut <span class="text-danger">*</span></label>
                         <select required name="statut" id="statut" class="form-control">
                             <option value="Actif">Actif</option>
@@ -273,17 +481,17 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                         </select>
                     </div>
 
-                    <div class="col-span-1">
+                    <div class="col-span-2">
                         <label for="photo" class="block mb-2">Photo du Créancier</label>
                         <input type="file" name="photo" id="photo" class="form-control" accept="image/*">
                         
-                        <div class="mt-3 border rounded-lg p-2 flex justify-center items-center h-32 w-32 bg-gray-100">
+                        <div class="mt-3 border rounded-lg p-2 flex justify-center items-center h-32 w-32 bg-gray-100 mx-auto photo-preview-mobile">
                             <img id="photoPreview" src="<?= $default_photo_placeholder ?>" alt="Prévisualisation" class="max-h-full max-w-full object-contain rounded-full">
                         </div>
                     </div>
                     
                     <div class="col-span-2 pt-4">
-                        <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" name="Valider" id="submitBtn" value="Enregistrer">
+                        <input type="submit" class="btn btn-success w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 cursor-pointer" name="Valider" id="submitBtn" value="Enregistrer">
                     </div>
                 </form>
             </div>
@@ -291,19 +499,19 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
     </div>
 
     <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="bg-white p-6 rounded-lg shadow-xl modal-content relative text-center" style="width: 400px;">
+        <div class="bg-white p-6 rounded-lg shadow-xl modal-content relative text-center" style="max-width: 95%; width: 400px;">
             <button id="closeDeleteModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition-all hover:rotate-90">
                 &times;
             </button>
             <i class="bi bi-exclamation-triangle-fill text-yellow-500 text-5xl mb-4"></i>
             <h4 class="text-xl font-bold mb-2">Confirmer la suppression</h4>
             <p class="mb-4">Êtes-vous sûr de vouloir supprimer le créancier <strong id="creancierNameToDelete"></strong> (Matricule: <span id="matriculeToDelete"></span>) ?</p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirmDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-transform transform hover:scale-105">
-                    Supprimer
+            <div class="flex justify-center space-x-4 flex-wrap gap-2">
+                <button id="confirmDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-all hover:scale-105 flex items-center">
+                    <i class="bi bi-trash-fill mr-2"></i> Supprimer
                 </button>
-                <button id="cancelDeleteBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-transform transform hover:scale-105">
-                    Annuler
+                <button id="cancelDeleteBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-all hover:scale-105 flex items-center">
+                    <i class="bi bi-x-circle mr-2"></i> Annuler
                 </button>
             </div>
         </div>
@@ -311,6 +519,34 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Gestion du menu mobile
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+            const openSidebarBtn = document.getElementById('openSidebar');
+            const closeSidebarBtn = document.getElementById('closeSidebar');
+
+            if (openSidebarBtn) {
+                openSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.add('mobile-open');
+                    mobileMenuOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    mobileMenuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            mobileMenuOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
             // Éléments du DOM généraux
             const addEditModal = document.getElementById('addEditModal');
             const deleteModal = document.getElementById('deleteModal');
@@ -347,11 +583,13 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
             function openModal(modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeModal(modal) {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                document.body.style.overflow = '';
             }
             
             // Gestion de la prévisualisation du fichier image
@@ -400,6 +638,16 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
             document.getElementById('closeDeleteModalBtn').addEventListener('click', () => closeModal(deleteModal));
             document.getElementById('cancelDeleteBtn').addEventListener('click', () => closeModal(deleteModal));
 
+            // Fermer les modales en cliquant à l'extérieur
+            [addEditModal, deleteModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            closeModal(modal);
+                        }
+                    });
+                }
+            });
 
             // Clics sur les boutons (Édition/Suppression)
             document.querySelector('#creanciersTableBody').addEventListener('click', (event) => {
@@ -519,10 +767,14 @@ unset($_SESSION['message_type']); // Nettoyer après affichage
                 document.getElementById('resultsCount').textContent = `Affichage de ${count} résultat(s).`;
                 
             });
-            
-            // Initialisation du compteur de résultats
-            const initialRowCount = <?php echo count($creanciers); ?>;
-            document.getElementById('resultsCount').textContent = `Affichage de ${initialRowCount} résultat(s).`;
+
+            // Touche Échap pour fermer les modales
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (!addEditModal.classList.contains('hidden')) closeModal(addEditModal);
+                    if (!deleteModal.classList.contains('hidden')) closeModal(deleteModal);
+                }
+            });
         });
     </script>
 </body>
